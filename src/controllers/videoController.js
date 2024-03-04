@@ -3,6 +3,7 @@ import initModels from "../models/init-models.js";
 import sequelize from "../models/connect.js";
 import { Op } from "sequelize";
 import { responseApi } from "../config/response.js";
+import { dataToken } from "../config/jwt.js";
 
 const model = initModels(sequelize);
 
@@ -57,4 +58,57 @@ let getVideoPage = async (req, res) => {
   responseApi(res, 200, { content: data, totalPage }, "Thành Công");
 };
 
-export { getVideo, createVideo, getVideoType, getVideoWithtype, getVideoPage };
+// Get VideoDetail
+let getVideoDetail = async (req, res) => {
+  let { videoId } = req.params;
+  let data = await model.video.findOne({
+    where: {
+      video_id: videoId,
+    },
+    include: ["user"],
+  });
+  responseApi(res, 200, data, "Thành công");
+};
+
+// Get commmentVideo
+let getCommentVideo = async (req, res) => {
+  let { videoId } = req.params;
+  let data = await model.video_comment.findAll({
+    where: {
+      video_id: videoId,
+    },
+    order: [["date_create", "DESC"]],
+    include: ["user"],
+  });
+
+  responseApi(res, 200, data, "Thành công");
+};
+
+// Post Comment
+let commentVideo = async (req, res) => {
+  let { videoId, content } = req.body;
+  let { token } = req.headers;
+  let decode = dataToken(token);
+  let { userId } = decode;
+
+  let newComment = {
+    video_id: videoId,
+    user_id: userId,
+    content: content,
+    date_create: new Date(),
+  };
+
+  await model.video_comment.create(newComment);
+  responseApi(res, 200, "", "Thành Công");
+};
+
+export {
+  getVideo,
+  createVideo,
+  getVideoType,
+  getVideoWithtype,
+  getVideoPage,
+  getVideoDetail,
+  getCommentVideo,
+  commentVideo,
+};

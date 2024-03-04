@@ -34,6 +34,10 @@ export default class users extends Model {
     role: {
       type: DataTypes.STRING(50),
       allowNull: true
+    },
+    refresh_token: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     sequelize,
